@@ -10,16 +10,12 @@ from win32com.shell import shell, shellcon  # type: ignore
 from .process_wrapper import ProcessWrapper, safe_string
 
 HTML_ITEM_HEADER = r'''<html><head>
-<!-- /* A font by Jos Buivenga (exljbris) -> www.exljbris.com */ -->
-<link href="https://web.poecdn.com/css/font.css" media="screen" rel="stylesheet" type="text/css">
 <style>
 html {
     background: black;
     color: antiquewhite;
     font-family: "FontinSmallCaps",Verdana,Arial,Helvetica,sans-serif;
     line-height: 1.3;
-    font-size: 13.5px;
-    font-weight: 400;
 }
 .results {
     font-family: sans-serif;
@@ -57,7 +53,9 @@ def _pob_line_to_html(line):
 
 def _mark_item_groups(output):
     hr_pos = output.rfind('<hr/>')
-    output = f'<div class="item">\n{output[:hr_pos]}</div>\n<hr/>\n<div class="results">\n{output[hr_pos + 6:]}\n</div>'
+    # output = f'<div class="item">\n{output[:hr_pos]}</div>\n<hr/>\n<div class="results">\n{output[hr_pos + 6:]}\n</div>'
+    # Only send the results back for rendering
+    output = f'<div class="results">\n{output[hr_pos + 6:]}\n</div>'
     output = re.sub(r'\n(?:<div>)((?:Equipping|Removing) this item.+:)\n(\(.+\))</div>((?:\n.*</div>)+)',
                     r'<div class="option">\n<div class="hdr1">\1</div>\n<div class="hdr2">\2</div>\3\n</div>\n', output)
     output = re.sub(r'\n<hr/>\n<hr/>', r'\n<hr/>', output)
@@ -70,6 +68,8 @@ def _calculate_diff(base_values, new_values):
     for field in fields:
         base_value = base_values.get(field, 0)
         new_value = new_values.get(field, 0)
+        if not isinstance(new_value, type(base_value)):
+            continue
         if base_value == new_value:  # exactly the same
             continue
         if _num_string(base_value) == _num_string(new_value):  # the same to 10 significant figures
@@ -82,7 +82,7 @@ class PathOfBuilding:
 
     def __init__(self, pob_path, pob_install, verbose=False):
         self.verbose = verbose and True
-        data_dir = pkg_resources.resource_filename('pob_wrapper', 'data')
+        data_dir = pkg_resources.resource_filename('pob_wrapper.pob_wrapper', 'data')
         docs = shell.SHGetFolderPath(0, shellcon.CSIDL_PERSONAL, None, 0)
 
         lua_path_parts = [

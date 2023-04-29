@@ -50,7 +50,8 @@ class ProcessWrapper:
             msg = self.get()
             if msg.startswith(START_RESULT):
                 break
-            self.receive_msg_fn(msg)
+            # Do not relay the message
+            # self.receive_msg_fn(msg)
 
         result_txt = self.get()
         self.expect(END_RESULT)
