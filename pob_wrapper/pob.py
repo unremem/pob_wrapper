@@ -82,7 +82,12 @@ class PathOfBuilding:
 
     def __init__(self, pob_path, pob_install, verbose=False):
         self.verbose = verbose and True
-        data_dir = pkg_resources.resource_filename('pob_wrapper.pob_wrapper', 'data')
+        if getattr(sys, 'frozen', False):
+            application_path = os.path.dirname(sys.executable)
+            data_dir = os.path.join(application_path, '..\pob_wrapper\pob_wrapper\data')
+        else:
+            data_dir = pkg_resources.resource_filename('pob_wrapper', 'data')
+        
         docs = shell.SHGetFolderPath(0, shellcon.CSIDL_PERSONAL, None, 0)
 
         lua_path_parts = [
